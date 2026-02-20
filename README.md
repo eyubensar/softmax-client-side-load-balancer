@@ -1,127 +1,124 @@
-# Softmax-Based Client-Side Load Balancer
+# Softmax Tabanlı İstemci Taraflı Yük Dengeleyici
 
-## 📌 Project Overview
+## 📌 Proje Özeti
 
-This project implements a client-side load balancing strategy for a distributed system consisting of **K non-stationary servers** with noisy latency.
+Bu projede, K adet zamanla performansı değişen (non-stationary) ve gürültülü (noisy) sunucudan oluşan bir dağıtık sistem için istemci taraflı bir yük dengeleme algoritması geliştirilmiştir.
 
-The objective is to **minimize total latency** (equivalently maximize cumulative reward).
+Amaç, toplam bekleme süresini (latency) minimize etmek, yani toplam ödülü (reward) maksimize etmektir.
 
-Unlike traditional static approaches such as Round Robin or Random selection, this project implements **Softmax Action Selection**, a probabilistic learning-based method inspired by the Multi-Armed Bandit problem.
-
----
-
-## 🧠 Problem Definition
-
-Each server:
-
-- Has a time-varying (non-stationary) mean latency
-- Contains Gaussian noise
-- Simulates real-world distributed system uncertainty
-
-The environment changes over time, meaning static algorithms cannot adapt.
-
-This problem can be modeled as a **Non-Stationary Multi-Armed Bandit** problem.
+Klasik Round Robin ve Random algoritmaları yerine, geçmiş performans verisini kullanarak olasılıksal seçim yapan **Softmax Action Selection** algoritması uygulanmıştır.
 
 ---
 
-## ⚙️ Implemented Algorithms
+## 🧠 Problem Tanımı
+
+Her sunucu:
+
+- Zamanla değişen ortalama gecikmeye (drift) sahiptir
+- Gaussian gürültü içerir
+- Gerçek dağıtık sistem belirsizliğini simüle eder
+
+Bu nedenle problem, **Non-Stationary Multi-Armed Bandit** problemi olarak modellenebilir.
+
+Statik algoritmalar bu ortamda adaptasyon gösteremez.
+
+---
+
+## ⚙️ Gerçekleştirilen Algoritmalar
 
 ### 1️⃣ Round Robin
-- Cycles through servers sequentially
-- No learning
-- No adaptation
+- Sunucuları sırayla seçer
+- Öğrenme yapmaz
+- Adaptif değildir
 
-### 2️⃣ Random Selection
-- Selects servers randomly
-- No learning
-- No adaptation
+### 2️⃣ Random
+- Rastgele seçim yapar
+- Geçmiş performansı kullanmaz
+- Adaptif değildir
 
 ### 3️⃣ Softmax Action Selection
-- Maintains estimated reward values (Q-values)
-- Selects servers probabilistically:
+- Her sunucu için bir Q değeri tutar
+- Q değeri geçmiş ödüllerin ortalamasıdır
+- Olasılıksal seçim yapar
 
-\[
-P(i) = \frac{e^{Q_i / T}}{\sum_j e^{Q_j / T}}
-\]
+Seçim olasılığı:
 
-Where:
-- Q_i = estimated reward of server i
-- T = temperature parameter controlling exploration-exploitation tradeoff
+P(i) = exp(Q_i / T) / Σ exp(Q_j / T)
 
----
-
-## 🔥 Why Softmax?
-
-Softmax enables:
-
-- Adaptive learning
-- Exploration-exploitation balance
-- Probabilistic decision making
-- Better performance in dynamic environments
-
-Unlike Round Robin and Random, Softmax uses historical performance data.
+Burada:
+- Q_i → i. sunucunun tahmini ödülü
+- T → temperature parametresi (exploration–exploitation dengesi)
 
 ---
 
-## 🧮 Numerical Stability
+## 🔥 Neden Softmax?
 
-Direct exponential computation can cause overflow:
+Softmax algoritması:
 
-\[
-e^{Q}
-\]
+- Adaptif öğrenme yapar
+- Exploration–exploitation dengesini sağlar
+- Non-stationary ortamlarda daha iyi performans gösterir
+- Geçmiş veriye dayalı olasılıksal karar verir
 
-To prevent this, the implementation subtracts the maximum Q-value before exponentiation:
-
-\[
-e^{(Q - max(Q))}
-\]
-
-This technique is known as the **Log-Sum-Exp trick**, ensuring numerical stability.
+Round Robin ve Random algoritmaları ise öğrenme yapmadığı için dinamik ortamlarda verimsizdir.
 
 ---
 
-## ⏱ Time Complexity Analysis
+## 🧮 Nümerik Stabilite Problemi
 
-For each decision step:
+Softmax hesaplamasında doğrudan:
 
-- Max Q computation → O(K)
-- Exponentiation → O(K)
-- Probability normalization → O(K)
+exp(Q)
 
-Total per step complexity:
+kullanımı büyük Q değerlerinde overflow hatasına yol açabilir.
 
-\[
+Bu problemi önlemek için:
+
+exp(Q - max(Q))
+
+yöntemi uygulanmıştır.
+
+Bu teknik literatürde **Log-Sum-Exp Trick** olarak bilinmektedir ve sayısal taşmayı engeller.
+
+---
+
+## ⏱ Çalışma Zamanı Analizi
+
+Her seçim adımında:
+
+- Maksimum Q değeri bulma → O(K)
+- Üstel hesaplama → O(K)
+- Normalize etme → O(K)
+
+Dolayısıyla her adım:
+
 O(K)
-\]
 
-Overall simulation complexity:
+Toplam simülasyon karmaşıklığı:
 
-\[
-O(T \times K)
-\]
+O(T × K)
 
-Where:
-- T = number of time steps
-- K = number of servers
+Burada:
+- T → zaman adımı sayısı
+- K → sunucu sayısı
 
 ---
 
-## 📊 Results
+## 📊 Sonuçlar
 
-Simulation results show that:
+Simülasyon sonuçlarına göre:
 
-- Softmax outperforms Round Robin and Random
-- It adapts to performance drift
-- It achieves higher cumulative reward over time
+- Softmax algoritması zamanla daha iyi performans gösteren sunuculara daha yüksek olasılık atamaktadır.
+- Toplam reward açısından Round Robin ve Random algoritmalarından daha iyi sonuç vermektedir.
+- Dinamik ortamlarda adaptif algoritmaların üstünlüğü gözlemlenmiştir.
 
-Graph visualization demonstrates this performance difference.
+Grafik çıktısı cumulative reward üzerinden karşılaştırma sunmaktadır.
 
 ---
 
-## 🚀 How to Run
+## 🚀 Çalıştırma Talimatları
 
-Install dependencies:
+Gerekli kütüphaneler:
 
 ```bash
 pip install numpy matplotlib
