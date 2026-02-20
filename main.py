@@ -3,9 +3,7 @@ import random
 import matplotlib.pyplot as plt
 
 
-# ==============================
-# SERVER MODEL (Non-Stationary)
-# ==============================
+
 
 class Server:
     def __init__(self, mean_latency, drift):
@@ -21,9 +19,6 @@ class Server:
         return self.mean_latency + noise
 
 
-# ==============================
-# LOAD BALANCERS
-# ==============================
 
 class RoundRobinBalancer:
     def __init__(self, k):
@@ -129,4 +124,5 @@ def main():
 
 
 if __name__ == "__main__":
+
     main()
